@@ -4,7 +4,7 @@
    
    http://vanadium-ros-pkg.googlecode.com/svn/trunk/arbotix/
 */
-
+#include "Arduino.h"
 /* PID setpoint info For a Motor */
 typedef struct {
   double TargetTicksPerFrame;    // target speed in ticks per frame
@@ -12,10 +12,10 @@ typedef struct {
   long PrevEnc;                  // last encoder count
 
   /*
-  * Using previous input (PrevInput) instead of PrevError to avoid derivative kick,
+  * Using previous input (PrevVelocityInTicksPerFrame) instead of PrevError to avoid derivative kick,
   * see http://brettbeauregard.com/blog/2011/04/improving-the-beginner%E2%80%99s-pid-derivative-kick/
   */
-  int PrevInput;                // last input
+  int PrevVelocityInTicksPerFrame;                // last input
   //int PrevErr;                   // last error
 
   /*
@@ -53,14 +53,14 @@ void resetPID(){
    leftPID.Encoder = readEncoder(LEFT);
    leftPID.PrevEnc = leftPID.Encoder;
    leftPID.output = 0;
-   leftPID.PrevInput = 0;
+   leftPID.PrevVelocityInTicksPerFrame = 0;
    leftPID.ITerm = 0;
 
    rightPID.TargetTicksPerFrame = 0.0;
    rightPID.Encoder = readEncoder(RIGHT);
    rightPID.PrevEnc = rightPID.Encoder;
    rightPID.output = 0;
-   rightPID.PrevInput = 0;
+   rightPID.PrevVelocityInTicksPerFrame = 0;
    rightPID.ITerm = 0;
 }
 
@@ -68,12 +68,23 @@ void resetPID(){
 void doPID(SetPointInfo * p) {
   long Perror;
   long output;
-  int input;
+  int CurrentVelocityInTicksPerFrame;
 
   //Perror = p->TargetTicksPerFrame - (p->Encoder - p->PrevEnc);
-  input = p->Encoder - p->PrevEnc;
-  Perror = p->TargetTicksPerFrame - input;
+  CurrentVelocityInTicksPerFrame = p->Encoder - p->PrevEnc;
+  Perror = p->TargetTicksPerFrame - CurrentVelocityInTicksPerFrame;
 
+  Serial.print("Target: ");
+  Serial.println(p->TargetTicksPerFrame);
+  Serial.print("error: ");
+  Serial.println(Perror);
+  Serial.print("Encoder: ");
+  Serial.println(p->Encoder);
+  Serial.print("PrevEncoder: ");
+  Serial.println(p->PrevEnc);
+  Serial.print("Velocity: ");
+  Serial.println(CurrentVelocityInTicksPerFrame);
+  Serial.println("============================");
 
   /*
   * Avoid derivative kick and allow tuning changes,
@@ -82,7 +93,7 @@ void doPID(SetPointInfo * p) {
   */
   //output = (Kp * Perror + Kd * (Perror - p->PrevErr) + Ki * p->Ierror) / Ko;
   // p->PrevErr = Perror;
-  output = (Kp * Perror - Kd * (input - p->PrevInput) + p->ITerm) / Ko;
+  output = (Kp * Perror - Kd * (CurrentVelocityInTicksPerFrame - p->PrevVelocityInTicksPerFrame) + p->ITerm) / Ko;
   p->PrevEnc = p->Encoder;
 
   output += p->output;
@@ -99,7 +110,7 @@ void doPID(SetPointInfo * p) {
     p->ITerm += Ki * Perror;
 
   p->output = output;
-  p->PrevInput = input;
+  p->PrevVelocityInTicksPerFrame = CurrentVelocityInTicksPerFrame;
 }
 
 /* Read the encoder values and call the PID routine */
@@ -113,10 +124,10 @@ void updatePID() {
     /*
     * Reset PIDs once, to prevent startup spikes,
     * see http://brettbeauregard.com/blog/2011/04/improving-the-beginner%E2%80%99s-pid-initialization/
-    * PrevInput is considered a good proxy to detect
+    * PrevVelocityInTicksPerFrame is considered a good proxy to detect
     * whether reset has already happened
     */
-    if (leftPID.PrevInput != 0 || rightPID.PrevInput != 0) resetPID();
+    if (leftPID.PrevVelocityInTicksPerFrame != 0 || rightPID.PrevVelocityInTicksPerFrame != 0) resetPID();
     return;
   }
 
