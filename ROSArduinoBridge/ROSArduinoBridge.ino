@@ -354,5 +354,10 @@ void loop() {
     servos[i].doSweep();
   }
 #endif
+
+#ifdef ARDUINO_ENC_COUNTER
+  encoderLeft.tick(); // Left encoder pins
+  encoderRight.tick(); // Right encoder pins
+#endif
 }
 

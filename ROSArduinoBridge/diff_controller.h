@@ -8,13 +8,12 @@
 /* PID setpoint info For a Motor */
 typedef struct {
   double TargetTicksPerFrame;    // target speed in ticks per frame
-  long Encoder;                  // encoder count
-  long PrevEnc;                  // last encoder count
 
   /*
   * Using previous input (PrevVelocityInTicksPerFrame) instead of PrevError to avoid derivative kick,
   * see http://brettbeauregard.com/blog/2011/04/improving-the-beginner%E2%80%99s-pid-derivative-kick/
   */
+  int CurrentVelocityInTicksPerFrame;                // last input
   int PrevVelocityInTicksPerFrame;                // last input
   //int PrevErr;                   // last error
 
@@ -49,41 +48,34 @@ unsigned char moving = 0; // is the base in motion?
 * when going from stop to moving, that's why we can init everything on zero.
 */
 void resetPID(){
-   leftPID.TargetTicksPerFrame = 0.0;
-   leftPID.Encoder = readEncoder(LEFT);
-   leftPID.PrevEnc = leftPID.Encoder;
-   leftPID.output = 0;
-   leftPID.PrevVelocityInTicksPerFrame = 0;
-   leftPID.ITerm = 0;
+  Serial.print("Reset PID: ");
+  leftPID.TargetTicksPerFrame = 0.0;
+  leftPID.output = 0;
+  leftPID.CurrentVelocityInTicksPerFrame = 0;
+  leftPID.PrevVelocityInTicksPerFrame = 0;
+  leftPID.ITerm = 0;
 
-   rightPID.TargetTicksPerFrame = 0.0;
-   rightPID.Encoder = readEncoder(RIGHT);
-   rightPID.PrevEnc = rightPID.Encoder;
-   rightPID.output = 0;
-   rightPID.PrevVelocityInTicksPerFrame = 0;
-   rightPID.ITerm = 0;
+  rightPID.TargetTicksPerFrame = 0.0;
+  rightPID.output = 0;
+  leftPID.CurrentVelocityInTicksPerFrame = 0;
+  rightPID.PrevVelocityInTicksPerFrame = 0;
+  rightPID.ITerm = 0;
 }
 
 /* PID routine to compute the next motor commands */
 void doPID(SetPointInfo * p) {
   long Perror;
   long output;
-  int CurrentVelocityInTicksPerFrame;
 
   //Perror = p->TargetTicksPerFrame - (p->Encoder - p->PrevEnc);
-  CurrentVelocityInTicksPerFrame = p->Encoder - p->PrevEnc;
-  Perror = p->TargetTicksPerFrame - CurrentVelocityInTicksPerFrame;
+  Perror = p->TargetTicksPerFrame - p->CurrentVelocityInTicksPerFrame;
 
   Serial.print("Target: ");
   Serial.println(p->TargetTicksPerFrame);
   Serial.print("error: ");
   Serial.println(Perror);
-  Serial.print("Encoder: ");
-  Serial.println(p->Encoder);
-  Serial.print("PrevEncoder: ");
-  Serial.println(p->PrevEnc);
   Serial.print("Velocity: ");
-  Serial.println(CurrentVelocityInTicksPerFrame);
+  Serial.println(p->CurrentVelocityInTicksPerFrame);
   Serial.println("============================");
 
   /*
@@ -93,8 +85,7 @@ void doPID(SetPointInfo * p) {
   */
   //output = (Kp * Perror + Kd * (Perror - p->PrevErr) + Ki * p->Ierror) / Ko;
   // p->PrevErr = Perror;
-  output = (Kp * Perror - Kd * (CurrentVelocityInTicksPerFrame - p->PrevVelocityInTicksPerFrame) + p->ITerm) / Ko;
-  p->PrevEnc = p->Encoder;
+  output = (Kp * Perror - Kd * (p->CurrentVelocityInTicksPerFrame - p->PrevVelocityInTicksPerFrame) + p->ITerm) / Ko;
 
   output += p->output;
   // Accumulate Integral error *or* Limit output.
@@ -107,17 +98,17 @@ void doPID(SetPointInfo * p) {
   /*
   * allow turning changes, see http://brettbeauregard.com/blog/2011/04/improving-the-beginner%E2%80%99s-pid-tuning-changes/
   */
-    p->ITerm += Ki * Perror;
+  p->ITerm += Ki * Perror;
 
   p->output = output;
-  p->PrevVelocityInTicksPerFrame = CurrentVelocityInTicksPerFrame;
+  p->PrevVelocityInTicksPerFrame = p->CurrentVelocityInTicksPerFrame;
 }
 
 /* Read the encoder values and call the PID routine */
 void updatePID() {
   /* Read the encoders */
-  leftPID.Encoder = readEncoder(LEFT);
-  rightPID.Encoder = readEncoder(RIGHT);
+  leftPID.CurrentVelocityInTicksPerFrame = readEncoder(LEFT);
+  rightPID.CurrentVelocityInTicksPerFrame = readEncoder(RIGHT);
   
   /* If we're not moving there is nothing more to do */
   if (!moving){
