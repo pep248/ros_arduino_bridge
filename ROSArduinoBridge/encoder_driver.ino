@@ -56,15 +56,16 @@
     if (i == LEFT)
     {
       // encoderLeft.getRPM(); // Left encoder pins
-      Serial.print("Left encoder: ");
-      Serial.println(encoderLeft.getRPM());
-      return encoderLeft.getRPM();
+      // Serial.print("Left encoder: ");
+      // Serial.println(encoderLeft.getPosition());
+      return encoderLeft.getPosition();
     }
     else
     {
-      Serial.print("Right encoder: ");
-      Serial.println(encoderRight.getRPM());
-      return encoderRight.getRPM();
+      // encoderRightight.getPosition(); // Right encoder pins
+      // Serial.print("Right encoder: ");
+      // Serial.println(encoderRight.getPosition());
+      return encoderRight.getPosition();
     }
   }
 

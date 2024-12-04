@@ -104,7 +104,7 @@
   #include "diff_controller.h"
 
   /* Run the PID loop at 30 times per second */
-  #define PID_RATE           30     // Hz
+  #define PID_RATE 4     // Hz // If we set this value too high, the velocity calculator always returns 0. Implement a velocity computer in the future that relies on time, not on ticks to get higgher resolution.
 
   /* Convert the rate into an interval */
   const int PID_INTERVAL = 1000 / PID_RATE;
@@ -114,7 +114,7 @@
 
   /* Stop the robot if it hasn't received a movement command
    in this number of milliseconds */
-  #define AUTO_STOP_INTERVAL 2000
+  #define AUTO_STOP_INTERVAL 300000
   long lastMotorCommand = AUTO_STOP_INTERVAL;
 #endif
 
@@ -215,8 +215,8 @@ int runCommand() {
       moving = 0;
     }
     else moving = 1;
-    leftPID.TargetTicksPerFrame = arg1;
-    rightPID.TargetTicksPerFrame = arg2;
+    leftPID.TargetTicksPerFrame = arg1/4;
+    rightPID.TargetTicksPerFrame = arg2/4;
     Serial.println("OK"); 
     break;
   case MOTOR_RAW_PWM:

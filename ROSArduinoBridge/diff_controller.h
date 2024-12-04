@@ -71,7 +71,15 @@ void doPID(SetPointInfo * p) {
   int CurrentVelocityInTicksPerFrame;
 
   //Perror = p->TargetTicksPerFrame - (p->Encoder - p->PrevEnc);
-  CurrentVelocityInTicksPerFrame = p->Encoder - p->PrevEnc;
+  if (p->output >= 0)
+  {
+    CurrentVelocityInTicksPerFrame = +abs(p->Encoder - p->PrevEnc);
+  }
+  else
+  {
+    CurrentVelocityInTicksPerFrame = -abs(p->Encoder - p->PrevEnc);
+  }
+  
   Perror = p->TargetTicksPerFrame - CurrentVelocityInTicksPerFrame;
 
   Serial.print("Target: ");
