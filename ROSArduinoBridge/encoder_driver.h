@@ -2,7 +2,7 @@
   Encoder driver function definitions - by James Nugen
   ************************************************************ */
 #ifdef ARDUINO_ENC_COUNTER
-  #include <RotaryEncoder.h>
+  #include "RotaryEncoder.h"
   //below can be changed, but should be PORTD pins; 
   //otherwise additional changes in the code are required
   #define LEFT_ENC_PIN_A 2  //pin 2

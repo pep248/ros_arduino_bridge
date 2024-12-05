@@ -104,7 +104,7 @@
   #include "diff_controller.h"
 
   /* Run the PID loop at 30 times per second */
-  #define PID_RATE 4     // Hz // If we set this value too high, the velocity calculator always returns 0. Implement a velocity computer in the future that relies on time, not on ticks to get higgher resolution.
+  #define PID_RATE 10     // Hz // If we set this value too high, the velocity calculator always returns 0. Implement a velocity computer in the future that relies on time, not on ticks to get higgher resolution.
 
   /* Convert the rate into an interval */
   const int PID_INTERVAL = 1000 / PID_RATE;
@@ -215,8 +215,8 @@ int runCommand() {
       moving = 0;
     }
     else moving = 1;
-    leftPID.TargetTicksPerFrame = arg1/4;
-    rightPID.TargetTicksPerFrame = arg2/4;
+    leftPID.TargetTicksPerFrame = arg1;
+    rightPID.TargetTicksPerFrame = arg2;
     Serial.println("OK"); 
     break;
   case MOTOR_RAW_PWM:
@@ -356,8 +356,8 @@ void loop() {
 #endif
 
 #ifdef ARDUINO_ENC_COUNTER
-  encoderLeft.tick(); // Left encoder pins
-  encoderRight.tick(); // Right encoder pins
+  encoderLeft.tick(leftPID.output); // Left encoder pins
+  encoderRight.tick(-rightPID.output); // Right encoder pins
 #endif
 }
 
