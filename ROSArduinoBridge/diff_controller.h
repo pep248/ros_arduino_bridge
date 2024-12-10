@@ -75,17 +75,17 @@ void doPID(SetPointInfo * p) {
   
   Perror = p->TargetTicksPerFrame - CurrentVelocityInTicksPerFrame;
 
-  Serial.print("Target: ");
-  Serial.println(p->TargetTicksPerFrame);
-  Serial.print("error: ");
-  Serial.println(Perror);
-  Serial.print("Encoder: ");
-  Serial.println(p->Encoder);
-  Serial.print("PrevEncoder: ");
-  Serial.println(p->PrevEnc);
-  Serial.print("Velocity: ");
-  Serial.println(CurrentVelocityInTicksPerFrame);
-  Serial.println("============================");
+  // Serial.print("Target: ");
+  // Serial.println(p->TargetTicksPerFrame);
+  // Serial.print("error: ");
+  // Serial.println(Perror);
+  // Serial.print("Encoder: ");
+  // Serial.println(p->Encoder);
+  // Serial.print("PrevEncoder: ");
+  // Serial.println(p->PrevEnc);
+  // Serial.print("Velocity: ");
+  // Serial.println(CurrentVelocityInTicksPerFrame);
+  // Serial.println("============================");
 
   /*
   * Avoid derivative kick and allow tuning changes,

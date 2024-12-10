@@ -114,7 +114,7 @@
 
   /* Stop the robot if it hasn't received a movement command
    in this number of milliseconds */
-  #define AUTO_STOP_INTERVAL 300000
+  #define AUTO_STOP_INTERVAL 1000
   long lastMotorCommand = AUTO_STOP_INTERVAL;
 #endif
 
@@ -357,7 +357,7 @@ void loop() {
 
 #ifdef ARDUINO_ENC_COUNTER
   encoderLeft.tick(leftPID.output); // Left encoder pins
-  encoderRight.tick(-rightPID.output); // Right encoder pins
+  encoderRight.tick(rightPID.output); // Right encoder pins
 #endif
 }
 
